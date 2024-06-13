@@ -1,55 +1,88 @@
 ﻿//Дарчук 4183 
 //Программирование и основы алгоритмизации 
-//Лаборатоная работа 1
+//Лаборатоная работа 2
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <iomanip>
 
 using namespace std;
 
-void substitution_strcat_s(char* str, size_t strSize, const char* str2) {
-    if (str == nullptr || str2 == nullptr) {
-        cout << "Одна или обе строки пустые!" << endl;
-        return;
-    }
-    if (strSize == 0) {
-        cout << "Размер буфера не может быть равен нулю!" << endl;
-        return;
-    }
+struct Student {
+    char name[20]; 
+    char grades[4]; 
+    double average;
+};
 
-    size_t strLen = strlen(str);
-    size_t str2Len = strlen(str2);
-
-    if (strLen + str2Len + 1 > strSize) {
-        cout << "Слишком маленький размер буфера!" << endl;
-        return;
+double calculateAverage(const char* grades) {
+    double sum = 0.0;
+    for (int i = 0; i < 4; i++) {
+        sum += grades[i] - '0'; 
     }
-
-    char* ptr = str + strlen(str);
-    while (*str2 != '\0') {
-        *ptr++ = *str2++;
-    }
-    *ptr = '\0'; 
-    return;
+    return sum / 4;
 }
 
-int main()
-{
-    setlocale(LC_ALL, "Russian");
+void clearFile(const string& filename) {
+    ofstream ofs(filename, ofstream::out | ofstream::trunc);
+    ofs.close();
+}
 
-    try {
-        const size_t bufferSize = 255;
-        char buffer[bufferSize] = "Строка1 ";
-        char buffer1[bufferSize] = "Строка12 ";
+int main() {
+    setlocale(LC_ALL, ""); 
 
-        substitution_strcat_s(buffer, bufferSize, "Строка2");
-        strcat_s(buffer1, bufferSize, "Строка22");
-
-        cout << "Самописный метод: " << buffer << endl << endl;
-        cout << "Официальный метод: " << buffer1 << endl;
+    ifstream inputFile("st.txt");
+    if (!inputFile.is_open()) {
+        cerr << "Ошибка открытия файла st.txt" << endl;
+        return 1;
     }
-    catch (const exception& e) {
-        cout << "Произошла ошибка при выполнении программы: " << e.what() << endl;
+
+    Student students[100]; 
+    int numStudents = 0;
+
+    string line;
+    while (getline(inputFile, line)) {
+        line.copy(students[numStudents].name, 19, 0);
+        students[numStudents].name[19] = '\0'; 
+
+        line.copy(students[numStudents].grades, 4, 20);
+
+        students[numStudents].average = calculateAverage(students[numStudents].grades);
+
+        numStudents++;
     }
+
+    inputFile.close();
+
+    string outputFileName;
+    cout << "Введите имя файла для записи результатов: ";
+    getline(cin, outputFileName);
+    outputFileName += ".txt";
+
+    ifstream checkFile(outputFileName);
+    if (checkFile.good()) {
+        clearFile(outputFileName);
+        cout << "Файл " << outputFileName << " уже существует и был очищен перед записью." << endl;
+    }
+    checkFile.close();
+
+    ofstream outputFile(outputFileName);
+    if (!outputFile.is_open()) {
+        cerr << "Ошибка открытия файла " << outputFileName << endl;
+        return 1;
+    }
+
+    outputFile << left << setw(20) << "Фамилия И. О." << "Ср. балл" << endl;
+    outputFile << "-------------------------------------" << endl;
+
+    for (int i = 0; i < numStudents; i++) {
+        if (students[i].average >= 4.0)
+            outputFile << left << setw(20) << students[i].name << students[i].average << endl;
+    }
+
+    outputFile.close();
+    cout << "Результаты записаны в файл " << outputFileName << endl;
 
     return 0;
 }
