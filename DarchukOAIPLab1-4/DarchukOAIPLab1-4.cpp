@@ -1,110 +1,135 @@
 ﻿//Дарчук 4183 
 //Программирование и основы алгоритмизации 
-//Лаборатоная работа 3
+//Лаборатоная работа 4
+//1 - Ж, 2 - А, 3 - В, 4 - Б 
+//ж) предпоследний элемент;
+//а) k-го по порядку элемента списка;
+//в) следующих до заданного идентификатора.
+//б) все идентификаторы, начинающиеся с заданной буквы;
 
-#include <stdio.h>
-#include <conio.h>
-#include <string.h>
 #include <iostream>
-#include <string>
-
-#define MAX 30
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
 
 using namespace std;
 
-struct STUDENT
+#define MAXDL 9 
+
+struct EL_SP 
 {
-	char fio[20]; 
-	char oc[6]; 
+	char id[MAXDL]; 
+	struct EL_SP* sled; 
 };
 
-struct EL_TAB
+void Vkl(struct EL_SP** p, char t_id[])
 {
-	char fio[20]; 
-	int oc[4]; 
-	float srball;
-};
+	struct EL_SP* pt, * k, * j = NULL; 
 
-void PechTab(EL_TAB* tab, int n)
-{
-	int j;
-	puts("\nФамилия И.О. Ср.балл");
-	puts("------------------------------");
-	for (j = 0; j < n; j++)
+	pt = (struct EL_SP*)malloc(sizeof(struct EL_SP));
+	strcpy_s(pt->id, t_id);
+
+	if (*p == NULL || strcmp(pt->id, (*p)->id) < 0)
 	{
-		printf("%s %.1f\n", tab[j].fio, tab[j].srball);
+		pt->sled = *p; *p = pt;
+	}
+	else
+	{
+		k = *p;
+		while (k != NULL && strcmp(pt->id, k->id) >= 0)
+		{
+			j = k;
+			k = k->sled;
+		}
+
+		if (j != NULL)
+			j->sled = pt;
+		else
+			*p = pt;
+
+		pt->sled = k;
 	}
 }
 
-void Stud(EL_TAB* tab, int n)
+void PechSp(struct EL_SP* p)
 {
-	char searchFio[20], lastName[20];
-	cout << "Введите фамилию студента: ";
-	cin >> searchFio;
-
-	bool found = false;
-	for (int j = 0; j < n; j++)
-	{
-		char* spacePos = strchr(tab[j].fio, ' ');
-		if (spacePos != NULL)
-		{
-			int length = spacePos - tab[j].fio;
-			strncpy_s(lastName, tab[j].fio, length);
-		}
-		else 
-			break;
-
-		if (strcmp(lastName, searchFio) == 0)
-		{
-			cout << "Фамилия И.О.: " << tab[j].fio << endl;
-			cout << "Оценки: ";
-			for (int k = 0; k < 4; k++)
-			{
-				cout << tab[j].oc[k] << " ";
-			}
-			cout << endl;
-			cout << "Средний балл: " << tab[j].srball << endl;
-			found = true;
-			break;
-		}
-	}
-
-	if (!found)
-	{
-		cout << "Студент с фамилией " << searchFio << " не найден." << endl;
-	}
+	struct EL_SP* i; 
+	printf("\nРезультат:\n");
+	for (i = p; i != NULL; i = i->sled)
+		puts(i->id);
 }
 
-void sortByAvgMark(EL_TAB* tab, int n) 
-{
-	EL_TAB temp;
-	for (int i = 0; i < n - 1; i++)
-	{
-		for (int j = 0; j < n - i - 1; j++)
-		{
-			if (tab[j].srball < tab[j + 1].srball)
-			{
-				temp = tab[j];
-				tab[j] = tab[j + 1];
-				tab[j + 1] = temp;
-			}
-		}
+void deleteLastMinus1(struct EL_SP** p) {
+
+	if (*p == NULL || (*p)->sled == NULL || (*p)->sled->sled == NULL) {
+		printf("В списке меньше трёх элементов, предпоследний элемент нельзя удалить.\n");
+		return;
 	}
 
-	PechTab(tab, n);
+	struct EL_SP* pred = NULL;
+	struct EL_SP* current = *p;
+
+	while (current->sled->sled != NULL) {
+		pred = current;
+		current = current->sled;
+	}
+
+	struct EL_SP* temp = current->sled;
+	free(current);
+	if (pred != NULL) {
+		pred->sled = temp;
+	}
+	else {
+		*p = temp;
+	}
+
+	printf("\nПредпоследний элемент удалён.\n");
 }
 
-void foundOnlyGreat(EL_TAB* tab, int n) 
-{
-	int j;
-	puts("\nОтличники группы (Балл больше или равен 4.5): ");
-	puts("\nФамилия И.О. Ср.балл");
-	puts("------------------------------");
-	for (j = 0; j < n; j++)
-	{
-		if (tab[j].srball >= 4.5) {
-			printf("%s %.1f\n", tab[j].fio, tab[j].srball);
+void changeElementK(struct EL_SP** p, unsigned k, char t_id[]) {
+	struct EL_SP* current = *p;
+	unsigned count = 1;
+
+	while (current != NULL && count < k) {
+		current = current->sled;
+		count++;
+	}
+
+	if (current != NULL) {
+		strcpy_s(current->id, t_id);
+		printf("\nЗначение %d-го элемента изменено на \"%s\".\n", k, t_id);
+	}
+	else 
+		printf("В списке меньше %u элементов, невозможно изменить %u-й элемент.\n", k, k);
+}
+
+int counterToM(struct EL_SP** p, char t_id[]) {
+	struct EL_SP* current = *p;
+	unsigned count = 0;
+
+	while (current != NULL && strcmp(current->id, t_id) != 0) {
+		count++;
+		current = current->sled;
+	}
+
+	return count;
+}
+
+void addToArr(struct EL_SP* p, char letter, char A[][MAXDL]) {
+	struct EL_SP* current = p;
+	int counter = 0;
+
+	for (int i = 0; i < 9; i++) {
+		A[i][0] = '\0';
+	}
+
+	while (current != NULL) {
+		if (current->id[0] == letter) {
+			strcpy_s(A[counter], current->id);
+			counter++;
 		}
+		current = current->sled;
 	}
 }
 
@@ -112,75 +137,58 @@ void main()
 {
 	setlocale(LC_ALL, "Russian");
 
-	FILE* f; 
-	STUDENT tz;
-	EL_TAB tab[MAX]; 
-	int n, i;
-	float s; 
+	struct EL_SP* p; 
+	unsigned n, i, k, counter; 
+	char t_id[MAXDL], letter, A[9][MAXDL]; 
 
-	fopen_s(&f, "st.txt", "r");
-	if (f == NULL)
+	printf("Введите число идентификаторов n = ");
+	scanf_s("%u", &n);
+	getchar(); 
+	p = NULL; 
+
+	printf("\nВведите идентификаторы (после каждого нажимайте клавишу <Enter>)\n");
+
+	for (i = 1; i <= n; i++)
 	{
-		puts("Файл st.txt не найден");
-		return;
+		gets_s(t_id);
+		Vkl(&p, t_id); 
 	}
 
-	n = 0;
-	while (fgets((char*)&tz, sizeof(struct STUDENT), f) != NULL)
-	{
-		for (i = 0, s = 0; i < 4; i++)
-		{
-			int ocenka = tz.oc[i] - '0';
-			tab[n].oc[i] = ocenka;
-			s += ocenka;
-		}
-		tz.fio[19] = '\0';
-		strcpy_s(tab[n].fio, tz.fio);
-		tab[n++].srball = s / 4;
+	PechSp(p);
+
+	deleteLastMinus1(&p);
+
+	PechSp(p);
+
+	printf("\nВведите порядковый номер элемента для замены: ");
+	scanf_s("%u", &k);
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
+	printf("Введите новый элемент для замены: ");
+	gets_s(t_id);
+	changeElementK(&p, k, t_id);
+
+	PechSp(p);
+
+	printf("\nВведите элемент до которого нужно вести учет: ");
+	gets_s(t_id);
+	counter = counterToM(&p, t_id);
+	if (counter > n)
+		printf("Среди элементов строки не был наден заданный элмент.");
+	else
+		printf("\nКоличество элементов, которые находятся до %s элемента равно: %u", t_id, counter);
+
+	printf("\n\nВведите букву, по которой нужно отобрать идентификаторы: ");
+	scanf_s("%c", &letter); 
+	addToArr(p, letter, A);
+
+	printf("\nМассив, состоящий из элементов, начинающихся на букву %c: \n", letter);
+	for (int c = 0; c < 9; c++) {
+		if (A[c][0] != '\0') 
+			printf("%s\n", A[c]);
 	}
-	fclose(f);
 
-	char nom; 
-	do
-	{
-		puts("------------------------------------------------------");
-		puts("Выберите номер пункта меню:");
-		puts("1 - Средние баллы студентов");
-		puts("2 - Информация о заданном студенте");
-		puts("3 - Выход");
-		puts("4 - Вывести студентов отсортированных по успеваемости");
-		puts("5 - Вывести только отличников группы");
-		puts("-------------------------------------------------------");
-		nom = getchar();
-		switch (nom)
-		{
-		case '1': 
-			PechTab(tab, n); 
-			break;
+	printf("\nДля завершения нажмите любую клавишу\n");
 
-		case '2':
-			Stud(tab, n); 
-			break;
-
-		case '3': 
-			break;
-
-		case '4':
-			sortByAvgMark(tab, n);
-			break;
-
-		case '5':
-			foundOnlyGreat(tab, n);
-			break;
-
-		default: 
-			puts("\nНужно ввести номер от 1 до 5");
-		}
-
-		if (nom != '3')
-		{
-			puts("\nДля продолжения нажмите любую клавишу");
-			_getch();
-		}
-	} while (nom != '3');
+	_getch();
+	return;
 }
