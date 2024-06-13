@@ -1,25 +1,28 @@
 ﻿//Дарчук 4183 
 //Программирование и основы алгоритмизации 
-//Лаборатоная работа 2
+//Лаборатоная работа 3
 
 #include <stdio.h>
 #include <conio.h>
 #include <string.h>
 #include <iostream>
+#include <string>
 
 #define MAX 30
 
+using namespace std;
+
 struct STUDENT
 {
-	char fio[20]; // фамилии и.о.
-	char oc[4]; // 5 оценок + '\n' + '\0'
+	char fio[20]; 
+	char oc[6]; 
 };
 
 struct EL_TAB
 {
-	char fio[20]; // фамилия и.о.
-	int oc[4]; // оценки
-	float srball; // средний балл
+	char fio[20]; 
+	int oc[4]; 
+	float srball;
 };
 
 void PechTab(EL_TAB* tab, int n)
@@ -35,6 +38,74 @@ void PechTab(EL_TAB* tab, int n)
 
 void Stud(EL_TAB* tab, int n)
 {
+	char searchFio[20], lastName[20];
+	cout << "Введите фамилию студента: ";
+	cin >> searchFio;
+
+	bool found = false;
+	for (int j = 0; j < n; j++)
+	{
+		char* spacePos = strchr(tab[j].fio, ' ');
+		if (spacePos != NULL)
+		{
+			int length = spacePos - tab[j].fio;
+			strncpy_s(lastName, tab[j].fio, length);
+		}
+		else 
+			break;
+
+		if (strcmp(lastName, searchFio) == 0)
+		{
+			cout << "Фамилия И.О.: " << tab[j].fio << endl;
+			cout << "Оценки: ";
+			for (int k = 0; k < 4; k++)
+			{
+				cout << tab[j].oc[k] << " ";
+			}
+			cout << endl;
+			cout << "Средний балл: " << tab[j].srball << endl;
+			found = true;
+			break;
+		}
+	}
+
+	if (!found)
+	{
+		cout << "Студент с фамилией " << searchFio << " не найден." << endl;
+	}
+}
+
+void sortByAvgMark(EL_TAB* tab, int n) 
+{
+	EL_TAB temp;
+	for (int i = 0; i < n - 1; i++)
+	{
+		for (int j = 0; j < n - i - 1; j++)
+		{
+			if (tab[j].srball < tab[j + 1].srball)
+			{
+				temp = tab[j];
+				tab[j] = tab[j + 1];
+				tab[j + 1] = temp;
+			}
+		}
+	}
+
+	PechTab(tab, n);
+}
+
+void foundOnlyGreat(EL_TAB* tab, int n) 
+{
+	int j;
+	puts("\nОтличники группы (Балл больше или равен 4.5): ");
+	puts("\nФамилия И.О. Ср.балл");
+	puts("------------------------------");
+	for (j = 0; j < n; j++)
+	{
+		if (tab[j].srball >= 4.5) {
+			printf("%s %.1f\n", tab[j].fio, tab[j].srball);
+		}
+	}
 }
 
 void main()
@@ -77,14 +148,33 @@ void main()
 		puts("1 - Средние баллы студентов");
 		puts("2 - Информация о заданном студенте");
 		puts("3 - Выход");
+		puts("4 - Вывести студентов отсортированных по успеваемости");
+		puts("5 - Вывести только отличников группы");
 		puts("-------------------------------------------------------");
 		nom = getchar();
 		switch (nom)
 		{
-		case '1': PechTab(tab, n); break;
-		case '2': Stud(tab, n); break;
-		case '3': break;
-		default: puts("\nНужно ввести номер от 1 до 3");
+		case '1': 
+			PechTab(tab, n); 
+			break;
+
+		case '2':
+			Stud(tab, n); 
+			break;
+
+		case '3': 
+			break;
+
+		case '4':
+			sortByAvgMark(tab, n);
+			break;
+
+		case '5':
+			foundOnlyGreat(tab, n);
+			break;
+
+		default: 
+			puts("\nНужно ввести номер от 1 до 5");
 		}
 
 		if (nom != '3')
