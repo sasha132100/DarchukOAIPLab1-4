@@ -2,87 +2,95 @@
 //Программирование и основы алгоритмизации 
 //Лаборатоная работа 2
 
+#include <stdio.h>
+#include <conio.h>
+#include <string.h>
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <iomanip>
 
-using namespace std;
+#define MAX 30
 
-struct Student {
-    char name[20]; 
-    char grades[4]; 
-    double average;
+struct STUDENT
+{
+	char fio[20]; // фамилии и.о.
+	char oc[4]; // 5 оценок + '\n' + '\0'
 };
 
-double calculateAverage(const char* grades) {
-    double sum = 0.0;
-    for (int i = 0; i < 4; i++) {
-        sum += grades[i] - '0'; 
-    }
-    return sum / 4;
+struct EL_TAB
+{
+	char fio[20]; // фамилия и.о.
+	int oc[4]; // оценки
+	float srball; // средний балл
+};
+
+void PechTab(EL_TAB* tab, int n)
+{
+	int j;
+	puts("\nФамилия И.О. Ср.балл");
+	puts("------------------------------");
+	for (j = 0; j < n; j++)
+	{
+		printf("%s %.1f\n", tab[j].fio, tab[j].srball);
+	}
 }
 
-void clearFile(const string& filename) {
-    ofstream ofs(filename, ofstream::out | ofstream::trunc);
-    ofs.close();
+void Stud(EL_TAB* tab, int n)
+{
 }
 
-int main() {
-    setlocale(LC_ALL, ""); 
+void main()
+{
+	setlocale(LC_ALL, "Russian");
 
-    ifstream inputFile("st.txt");
-    if (!inputFile.is_open()) {
-        cerr << "Ошибка открытия файла st.txt" << endl;
-        return 1;
-    }
+	FILE* f; 
+	STUDENT tz;
+	EL_TAB tab[MAX]; 
+	int n, i;
+	float s; 
 
-    Student students[100]; 
-    int numStudents = 0;
+	fopen_s(&f, "st.txt", "r");
+	if (f == NULL)
+	{
+		puts("Файл st.txt не найден");
+		return;
+	}
 
-    string line;
-    while (getline(inputFile, line)) {
-        line.copy(students[numStudents].name, 19, 0);
-        students[numStudents].name[19] = '\0'; 
+	n = 0;
+	while (fgets((char*)&tz, sizeof(struct STUDENT), f) != NULL)
+	{
+		for (i = 0, s = 0; i < 4; i++)
+		{
+			int ocenka = tz.oc[i] - '0';
+			tab[n].oc[i] = ocenka;
+			s += ocenka;
+		}
+		tz.fio[19] = '\0';
+		strcpy_s(tab[n].fio, tz.fio);
+		tab[n++].srball = s / 4;
+	}
+	fclose(f);
 
-        line.copy(students[numStudents].grades, 4, 20);
+	char nom; 
+	do
+	{
+		puts("------------------------------------------------------");
+		puts("Выберите номер пункта меню:");
+		puts("1 - Средние баллы студентов");
+		puts("2 - Информация о заданном студенте");
+		puts("3 - Выход");
+		puts("-------------------------------------------------------");
+		nom = getchar();
+		switch (nom)
+		{
+		case '1': PechTab(tab, n); break;
+		case '2': Stud(tab, n); break;
+		case '3': break;
+		default: puts("\nНужно ввести номер от 1 до 3");
+		}
 
-        students[numStudents].average = calculateAverage(students[numStudents].grades);
-
-        numStudents++;
-    }
-
-    inputFile.close();
-
-    string outputFileName;
-    cout << "Введите имя файла для записи результатов: ";
-    getline(cin, outputFileName);
-    outputFileName += ".txt";
-
-    ifstream checkFile(outputFileName);
-    if (checkFile.good()) {
-        clearFile(outputFileName);
-        cout << "Файл " << outputFileName << " уже существует и был очищен перед записью." << endl;
-    }
-    checkFile.close();
-
-    ofstream outputFile(outputFileName);
-    if (!outputFile.is_open()) {
-        cerr << "Ошибка открытия файла " << outputFileName << endl;
-        return 1;
-    }
-
-    outputFile << left << setw(20) << "Фамилия И. О." << "Ср. балл" << endl;
-    outputFile << "-------------------------------------" << endl;
-
-    for (int i = 0; i < numStudents; i++) {
-        if (students[i].average >= 4.0)
-            outputFile << left << setw(20) << students[i].name << students[i].average << endl;
-    }
-
-    outputFile.close();
-    cout << "Результаты записаны в файл " << outputFileName << endl;
-
-    return 0;
+		if (nom != '3')
+		{
+			puts("\nДля продолжения нажмите любую клавишу");
+			_getch();
+		}
+	} while (nom != '3');
 }
